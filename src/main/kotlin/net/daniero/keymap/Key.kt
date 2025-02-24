@@ -1,6 +1,8 @@
 package net.daniero.keymap
 
-interface Key<E> where E : Enum<E>, E : Key<E>
+sealed interface Key<E> where E : Key<E>
+
+interface EnumKey<E> : Key<E> where E : Enum<E>, E : Key<E>
 
 data class Unknown<E>(
     val name: String,

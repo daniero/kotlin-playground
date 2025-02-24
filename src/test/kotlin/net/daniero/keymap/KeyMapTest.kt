@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Test
 
 class KeyMapTest {
 
-    enum class Example : Key<Example> {
+    enum class Example : EnumKey<Example> {
         FOO, BAR, BAZ
     }
 
     @Test
     fun `makeKeyMap maps keys to either the corresponding enum entry or Unknown`() {
-        val result = makeKeyMap<Example>(
+        val result: KeyMap<Example> = makeKeyMap(
             mapOf(
                 "FOO" to "yep",
                 "BAZ" to "aye",
