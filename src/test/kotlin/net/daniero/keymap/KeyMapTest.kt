@@ -2,12 +2,12 @@ package net.daniero.keymap
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.contextual
-import kotlinx.serialization.serializer
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
+import net.daniero.keymap.Example.*
 import org.junit.jupiter.api.Test
 
 @Serializable
@@ -16,21 +16,19 @@ data class Foo(
 )
 
 @Serializable
-enum class Example : EnumKey<Example> {
+enum class Example {
     FOO, BAR, BAZ
 }
 
 val json = Json {
-    prettyPrint = true
+    allowStructuredMapKeys = true
     serializersModule = SerializersModule {
-        // https://chatgpt.com/share/67c77b8d-9e64-800f-b889-da59477dfa82
-        contextual(keyMapSerializer(Example.serializer()))
+        polymorphic(Key::class) {
+            subclass(EnumKey.serializer(Example.serializer()))
+            subclass(Unknown.serializer(Example.serializer()))
+        }
     }
 }
-
-fun <E> keyMapSerializer(enumSerializer: KSerializer<E>): KSerializer<Map<Key<E>, String>>
-        where E : Enum<E>, E : Key<E> = KeyMapSerializer(enumSerializer, serializer())
-
 
 class KeyMapTest {
 
@@ -46,9 +44,9 @@ class KeyMapTest {
 
         assertThat(result).isEqualTo(
             mapOf(
-                Example.FOO to "yep",
-                Example.BAZ to "aye",
-                Unknown("what?") to "nope!"
+                EnumKey(FOO) to "yep",
+                EnumKey(BAZ) to "aye",
+                Unknown<Example>("what?") to "nope!"
             )
         )
     }
@@ -57,14 +55,15 @@ class KeyMapTest {
     fun `serialize and deserialize`() {
         val original = Foo(
             map = mapOf(
-                Example.FOO to "yep",
-                Example.BAZ to "aye",
+                EnumKey(FOO) to "yep",
+                EnumKey(BAZ) to "aye",
                 Unknown<Example>("what?") to "nah",
             )
         )
 
         val string = json.encodeToString(original)
         val fromString = json.decodeFromString<Foo>(string)
+        println(string)
         assertThat(fromString).isEqualTo(original)
     }
 }
