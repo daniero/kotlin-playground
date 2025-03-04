@@ -1,5 +1,8 @@
 plugins {
-    kotlin("jvm") version "2.0.20"
+    val kotlinVersion = "2.0.20"
+
+    kotlin("jvm") version kotlinVersion
+    kotlin("plugin.serialization") version kotlinVersion
 }
 
 group = "net.daniero"
@@ -10,6 +13,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     testImplementation(kotlin("test"))
     testImplementation("com.willowtreeapps.assertk:assertk:0.28.1")}
 
