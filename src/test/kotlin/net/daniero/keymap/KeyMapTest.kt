@@ -2,12 +2,14 @@ package net.daniero.keymap
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import net.daniero.keymap.Example.*
+import net.daniero.keymap.Example.BAZ
+import net.daniero.keymap.Example.FOO
 import org.junit.jupiter.api.Test
 
 @Serializable
@@ -24,8 +26,16 @@ val json = Json {
     allowStructuredMapKeys = true
     serializersModule = SerializersModule {
         polymorphic(Key::class) {
-            subclass(EnumKey.serializer(Example.serializer()))
-            subclass(Unknown.serializer(Example.serializer()))
+            fun <E> registerKeySerializer(kSerializer: KSerializer<E>) {
+                subclass(EnumKey.serializer(kSerializer))
+                subclass(Unknown.serializer(kSerializer))
+            }
+
+            polymorphicDefaultSerializer(Key::class) { value: Key<*> ->
+                TODO("To use your enum class in a KeyMap you must register its serializer here")
+            }
+
+            registerKeySerializer(Example.serializer())
         }
     }
 }
